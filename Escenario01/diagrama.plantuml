@@ -1,0 +1,62 @@
+@startuml Escenario01
+title Escenario 01 - Matricula vehicular
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+abstract class Vehiculo {
+    - placa: String
+    - marca: String
+    - modelo: String
+    - anioFabricacion: int
+    - avaluo: double
+    {abstract} + calcularMatricula(): double
+}
+
+class Auto {
+    + calcularMatricula(): double
+}
+
+class Camioneta {
+    - capacidad: double
+    - uso: String
+    + calcularMatricula(): double
+}
+
+class Camion {
+    - tonelaje: double
+    - capacidadCarga: double
+    + calcularMatricula(): double
+}
+
+Vehiculo <|-- Auto
+Vehiculo <|-- Camioneta
+Vehiculo <|-- Camion
+
+abstract class CreadorVehiculo {
+    {abstract} + crearVehiculo(datos): Vehiculo
+    + procesarMatricula(datos): double
+}
+
+class CreadorAuto {
+    + crearVehiculo(datos): Vehiculo
+}
+
+class CreadorCamioneta {
+    + crearVehiculo(datos): Vehiculo
+}
+
+class CreadorCamion {
+    + crearVehiculo(datos): Vehiculo
+}
+
+CreadorVehiculo <|-- CreadorAuto
+CreadorVehiculo <|-- CreadorCamioneta
+CreadorVehiculo <|-- CreadorCamion
+
+CreadorVehiculo ..> Vehiculo : utiliza
+CreadorAuto ..> Auto : crea
+CreadorCamioneta ..> Camioneta : crea
+CreadorCamion ..> Camion : crea
+
+@enduml

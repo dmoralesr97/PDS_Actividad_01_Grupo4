@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Factory Method – Matrícula Vehicular</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273549;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --creator-bg: #14532d;
+      --creator-border: #16a34a;
+      --product-bg: #1e3a5f;
+      --product-border: #2563eb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ───── Header ───── */
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+    }
+    header .badge {
+      display: inline-block;
+      background: rgba(99,102,241,.2);
+      border: 1px solid #6366f1;
+      color: #a5b4fc;
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .25rem .75rem;
+      border-radius: 9999px;
+      margin-bottom: .75rem;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p { color: var(--muted); margin-top: .4rem; font-size: .95rem; }
+
+    /* ───── Container ───── */
+    .container { max-width: 1300px; margin: 0 auto; padding: 2rem; }
+
+    /* ───── Section titles ───── */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ───── UML Diagram ───── */
+    .diagram-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    .diagram-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      min-width: 700px;
+    }
+    .hierarchy-label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .75rem;
+    }
+    .uml-tree {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .uml-class {
+      border-radius: .5rem;
+      min-width: 180px;
+      text-align: center;
+      font-size: .82rem;
+    }
+    .uml-class .class-name {
+      font-weight: 700;
+      padding: .4rem .8rem;
+      border-radius: .5rem .5rem 0 0;
+    }
+    .uml-class.abstract .class-name { font-style: italic; }
+    .uml-class .class-body {
+      padding: .4rem .8rem;
+      border-radius: 0 0 .5rem .5rem;
+      text-align: left;
+      line-height: 1.6;
+    }
+    .uml-class .class-body .attr { color: var(--muted); font-size: .75rem; }
+    .uml-class .class-body .method { color: #a5b4fc; font-size: .75rem; }
+    .uml-class .class-body .abstract-method { color: #fbbf24; font-size: .75rem; font-style: italic; }
+
+    /* Product classes */
+    .uml-class.product-abstract { background: var(--product-bg); border: 2px solid var(--product-border); }
+    .uml-class.product-abstract .class-name { background: rgba(37,99,235,.5); color: #bfdbfe; }
+    .uml-class.product-abstract .class-body { background: rgba(37,99,235,.15); }
+
+    .uml-class.product-auto { background: #1e3a5f; border: 2px solid var(--blue); }
+    .uml-class.product-auto .class-name { background: rgba(59,130,246,.4); color: #93c5fd; }
+    .uml-class.product-auto .class-body { background: rgba(59,130,246,.1); }
+
+    .uml-class.product-camioneta { background: #2d1b5e; border: 2px solid var(--purple); }
+    .uml-class.product-camioneta .class-name { background: rgba(139,92,246,.4); color: #c4b5fd; }
+    .uml-class.product-camioneta .class-body { background: rgba(139,92,246,.1); }
+
+    .uml-class.product-camion { background: #451a03; border: 2px solid var(--amber); }
+    .uml-class.product-camion .class-name { background: rgba(245,158,11,.3); color: #fcd34d; }
+    .uml-class.product-camion .class-body { background: rgba(245,158,11,.08); }
+
+    /* Creator classes */
+    .uml-class.creator-abstract { background: #14532d; border: 2px solid var(--green); }
+    .uml-class.creator-abstract .class-name { background: rgba(16,185,129,.4); color: #6ee7b7; }
+    .uml-class.creator-abstract .class-body { background: rgba(16,185,129,.1); }
+
+    .uml-class.creator-auto { background: #1e3a5f; border: 2px solid var(--blue); }
+    .uml-class.creator-auto .class-name { background: rgba(59,130,246,.35); color: #93c5fd; }
+    .uml-class.creator-auto .class-body { background: rgba(59,130,246,.08); }
+
+    .uml-class.creator-camioneta { background: #2d1b5e; border: 2px solid var(--purple); }
+    .uml-class.creator-camioneta .class-name { background: rgba(139,92,246,.35); color: #c4b5fd; }
+    .uml-class.creator-camioneta .class-body { background: rgba(139,92,246,.08); }
+
+    .uml-class.creator-camion { background: #451a03; border: 2px solid var(--amber); }
+    .uml-class.creator-camion .class-name { background: rgba(245,158,11,.25); color: #fcd34d; }
+    .uml-class.creator-camion .class-body { background: rgba(245,158,11,.06); }
+
+    .children-row {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .connector-v {
+      width: 2px;
+      height: 28px;
+      background: var(--border);
+      margin: 0 auto;
+    }
+    .connector-h {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      position: relative;
+    }
+    .connector-h::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 14px;
+      background: var(--border);
+    }
+    .connector-h-line {
+      position: relative;
+    }
+    .connector-branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .connector-branch .branch-up {
+      width: 2px;
+      height: 14px;
+      background: var(--border);
+    }
+
+    /* Horizontal connector across children */
+    .h-bar {
+      position: relative;
+      height: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ───── Main layout ───── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .diagram-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ───── Form Panel ───── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+
+    .type-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+      margin-bottom: 1.25rem;
+    }
+    .type-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .35rem;
+      padding: .75rem .5rem;
+      border: 2px solid var(--border);
+      border-radius: .75rem;
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      font-size: .82rem;
+      font-weight: 600;
+    }
+    .type-btn .icon { font-size: 1.5rem; }
+    .type-btn:hover { border-color: var(--blue); color: var(--text); }
+    .type-btn.active[data-type="auto"]     { border-color: var(--blue);   color: #93c5fd; background: rgba(59,130,246,.12); }
+    .type-btn.active[data-type="camioneta"]{ border-color: var(--purple); color: #c4b5fd; background: rgba(139,92,246,.12); }
+    .type-btn.active[data-type="camion"]  { border-color: var(--amber);  color: #fcd34d; background: rgba(245,158,11,.12); }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: .3rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: .5rem;
+      color: var(--text);
+      padding: .55rem .75rem;
+      font-size: .9rem;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--blue);
+    }
+    .form-group select option { background: #1e293b; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+
+    .extra-fields {
+      display: none;
+      border-top: 1px solid var(--border);
+      margin-top: 1rem;
+      padding-top: 1rem;
+    }
+    .extra-fields.visible { display: block; }
+    .extra-fields .label-extra {
+      font-size: .72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      font-weight: 700;
+      margin-bottom: .75rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: .75rem;
+      border-radius: .75rem;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all .2s;
+      letter-spacing: .02em;
+    }
+    .submit-btn.auto     { background: var(--blue);   color: #fff; }
+    .submit-btn.camioneta{ background: var(--purple); color: #fff; }
+    .submit-btn.camion   { background: var(--amber);  color: #000; }
+    .submit-btn:hover { opacity: .88; transform: translateY(-1px); }
+    .submit-btn:active { transform: translateY(0); }
+
+    /* ───── Flow Panel ───── */
+    .flow-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .flow-empty {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 1rem;
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      flex: 1;
+    }
+    .flow-empty .big-icon { font-size: 3rem; margin-bottom: .75rem; }
+
+    /* Steps */
+    .steps-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+
+    .steps-list { display: flex; flex-direction: column; gap: .75rem; }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      opacity: .3;
+      transition: opacity .4s, transform .4s;
+      transform: translateX(-10px);
+    }
+    .step.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .step-num {
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: .8rem;
+      flex-shrink: 0;
+    }
+    .step-content .step-title { font-weight: 600; font-size: .9rem; }
+    .step-content .step-detail { font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+    .step-content .step-class {
+      display: inline-block;
+      font-size: .75rem;
+      font-family: 'Courier New', monospace;
+      background: rgba(255,255,255,.07);
+      border-radius: .3rem;
+      padding: .1rem .4rem;
+      margin-top: .25rem;
+    }
+
+    /* Result */
+    .result-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      display: none;
+    }
+    .result-panel.visible { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .vehicle-icon { font-size: 2.5rem; }
+    .result-title { font-size: 1.1rem; font-weight: 700; }
+    .result-subtitle { font-size: .82rem; color: var(--muted); }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    .result-card {
+      background: var(--surface2);
+      border-radius: .6rem;
+      padding: .75rem;
+    }
+    .result-card .rc-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .2rem; }
+    .result-card .rc-value { font-size: .95rem; font-weight: 600; }
+
+    .matricula-box {
+      background: linear-gradient(135deg, rgba(16,185,129,.15), rgba(16,185,129,.05));
+      border: 1px solid var(--green);
+      border-radius: .75rem;
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .matricula-box .ml-label { font-size: .8rem; color: #6ee7b7; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .3rem; }
+    .matricula-box .ml-value { font-size: 2rem; font-weight: 800; color: #34d399; }
+    .matricula-box .ml-formula { font-size: .75rem; color: var(--muted); margin-top: .3rem; font-family: monospace; }
+
+    /* Code snippet */
+    .code-block {
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      padding: 1.25rem;
+      font-family: 'Courier New', monospace;
+      font-size: .78rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .code-kw   { color: #c792ea; }
+    .code-cls  { color: #82aaff; }
+    .code-fn   { color: #82cfff; }
+    .code-str  { color: #c3e88d; }
+    .code-num  { color: #f78c6c; }
+    .code-cmt  { color: #546e7a; font-style: italic; }
+    .code-new  { color: #89ddff; }
+
+    /* Highlight active class in diagram */
+    .uml-class { transition: box-shadow .3s; }
+    .uml-class.highlight { box-shadow: 0 0 0 3px #fbbf24, 0 0 20px rgba(251,191,36,.3); }
+
+    /* History */
+    .history-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .history-list { display: flex; flex-direction: column; gap: .5rem; max-height: 250px; overflow-y: auto; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: var(--surface2);
+      border-radius: .5rem;
+      padding: .6rem .9rem;
+      font-size: .82rem;
+    }
+    .history-badge {
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .15rem .5rem;
+      border-radius: 9999px;
+    }
+    .hb-auto     { background: rgba(59,130,246,.2);  color: #93c5fd; }
+    .hb-camioneta{ background: rgba(139,92,246,.2);  color: #c4b5fd; }
+    .hb-camion   { background: rgba(245,158,11,.2);  color: #fcd34d; }
+    .history-placa { font-weight: 700; }
+    .history-monto { margin-left: auto; font-weight: 700; color: var(--green); }
+
+    .empty-history { color: var(--muted); text-align: center; padding: 1rem; font-size: .85rem; }
+
+    /* tabs */
+    .tabs { display: flex; gap: .5rem; margin-bottom: 1rem; }
+    .tab {
+      padding: .4rem .9rem;
+      border-radius: .5rem;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Patrón Creacional</div>
+  <h1>Factory Method – Matrícula Vehicular</h1>
+  <p>Implementación interactiva del patrón de diseño Factory Method para el cálculo de matrículas vehiculares</p>
+</header>
+
+<div class="container">
+
+  <!-- ── Diagrama UML ── -->
+  <div class="section-title">Diagrama de Clases (UML)</div>
+  <div class="diagram-wrapper">
+    <div class="diagram-grid">
+
+      <!-- Jerarquía Producto -->
+      <div>
+        <div class="hierarchy-label" style="color:var(--blue)">▸ Jerarquía Producto (Vehicle)</div>
+        <div class="uml-tree">
+          <div class="uml-class product-abstract abstract" id="cls-vehiculo">
+            <div class="class-name">«abstract» Vehiculo</div>
+            <div class="class-body">
+              <div class="attr">- placa: String</div>
+              <div class="attr">- marca: String</div>
+              <div class="attr">- modelo: String</div>
+              <div class="attr">- anioFabricacion: int</div>
+              <div class="attr">- avaluo: double</div>
+              <hr style="border-color:#334155;margin:.3rem 0">
+              <div class="abstract-method">+ calcularMatricula(): double</div>
+            </div>
+          </div>
+          <div class="connector-v"></div>
+          <!-- H bar -->
+          <div style="display:flex;align-items:flex-start;width:100%">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+              <div class="connector-v" style="height:14px"></div>
+              <div class="uml-class product-auto" id="cls-auto">
+                <div class="class-name">Auto</div>
+                <div class="class-body">
+                  <div class="method">+ calcularMatricula(): double</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+              <div class="connector-v" style="height:14px"></div>
+              <div class="uml-class product-camioneta" id="cls-camioneta">
+                <div class="class-name">Camioneta</div>
+                <div class="class-body">
+                  <div class="attr">- capacidad: double</div>
+                  <div class="attr">- uso: String</div>
+                  <div class="method">+ calcularMatricula(): double</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+              <div class="connector-v" style="height:14px"></div>
+              <div class="uml-class product-camion" id="cls-camion">
+                <div class="class-name">Camion</div>
+                <div class="class-body">
+                  <div class="attr">- tonelaje: double</div>
+                  <div class="attr">- capacidadCarga: double</div>
+                  <div class="method">+ calcularMatricula(): double</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Jerarquía Creator -->
+      <div>
+        <div class="hierarchy-label" style="color:var(--green)">▸ Jerarquía Creador (Creator)</div>
+        <div class="uml-tree">
+          <div class="uml-class creator-abstract abstract" id="cls-creador">
+            <div class="class-name">«abstract» CreadorVehiculo</div>
+            <div class="class-body">
+              <div class="abstract-method">+ crearVehiculo(datos): Vehiculo</div>
+              <div class="method">+ procesarMatricula(datos): double</div>
+            </div>
+          </div>
+          <div class="connector-v"></div>
+          <div style="display:flex;align-items:flex-start;width:100%">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+              <div class="connector-v" style="height:14px"></div>
+              <div class="uml-class creator-auto" id="cls-creador-auto">
+                <div class="class-name">CreadorAuto</div>
+                <div class="class-body">
+                  <div class="method">+ crearVehiculo(datos): Vehiculo</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+              <div class="connector-v" style="height:14px"></div>
+              <div class="uml-class creator-camioneta" id="cls-creador-camioneta">
+                <div class="class-name">CreadorCamioneta</div>
+                <div class="class-body">
+                  <div class="method">+ crearVehiculo(datos): Vehiculo</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+              <div class="connector-v" style="height:14px"></div>
+              <div class="uml-class creator-camion" id="cls-creador-camion">
+                <div class="class-name">CreadorCamion</div>
+                <div class="class-body">
+                  <div class="method">+ crearVehiculo(datos): Vehiculo</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Principal ── -->
+  <div class="main-grid">
+
+    <!-- Formulario -->
+    <div class="panel">
+      <div class="section-title" style="margin-bottom:1rem">Registrar Vehículo</div>
+
+      <div class="type-selector">
+        <button class="type-btn active" data-type="auto" onclick="selectType('auto')">
+          <span class="icon">🚗</span> Auto
+        </button>
+        <button class="type-btn" data-type="camioneta" onclick="selectType('camioneta')">
+          <span class="icon">🚙</span> Camioneta
+        </button>
+        <button class="type-btn" data-type="camion" onclick="selectType('camion')">
+          <span class="icon">🚛</span> Camión
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label>Placa</label>
+        <input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Marca</label>
+          <input type="text" id="f-marca" placeholder="Toyota">
+        </div>
+        <div class="form-group">
+          <label>Modelo</label>
+          <input type="text" id="f-modelo" placeholder="Corolla">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Año Fabricación</label>
+          <input type="number" id="f-anio" placeholder="2022" min="1900" max="2026">
+        </div>
+        <div class="form-group">
+          <label>Avalúo (USD)</label>
+          <input type="number" id="f-avaluo" placeholder="18000" min="0" step="100">
+        </div>
+      </div>
+
+      <!-- Camioneta extras -->
+      <div class="extra-fields" id="extra-camioneta">
+        <div class="label-extra">Datos adicionales – Camioneta</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Capacidad (ton)</label>
+            <input type="number" id="f-capacidad" placeholder="1.5" step="0.1" min="0">
+          </div>
+          <div class="form-group">
+            <label>Uso</label>
+            <select id="f-uso">
+              <option value="particular">Particular</option>
+              <option value="comercial">Comercial</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camion extras -->
+      <div class="extra-fields" id="extra-camion">
+        <div class="label-extra">Datos adicionales – Camión</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tonelaje</label>
+            <input type="number" id="f-tonelaje" placeholder="5" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Cap. Carga (ton)</label>
+            <input type="number" id="f-carga" placeholder="8" step="0.5" min="0">
+          </div>
+        </div>
+      </div>
+
+      <button class="submit-btn auto" id="submit-btn" onclick="procesarMatricula()">
+        Calcular Matrícula →
+      </button>
+    </div>
+
+    <!-- Panel derecho -->
+    <div class="flow-panel">
+
+      <!-- Empty state -->
+      <div class="flow-empty" id="empty-state">
+        <div class="big-icon">🏭</div>
+        <div style="font-weight:600;margin-bottom:.4rem">Selecciona un tipo de vehículo</div>
+        <div style="font-size:.85rem">Completa el formulario para ver cómo el patrón <strong>Factory Method</strong> crea el objeto y calcula la matrícula paso a paso.</div>
+      </div>
+
+      <!-- Ejecución del patrón -->
+      <div class="steps-panel" id="steps-panel" style="display:none">
+        <div class="section-title" style="margin-bottom:1rem">Ejecución del Patrón</div>
+        <div class="steps-list" id="steps-list"></div>
+      </div>
+
+      <!-- Resultado -->
+      <div class="result-panel" id="result-panel">
+        <div class="section-title" style="margin-bottom:1rem">Resultado</div>
+        <div class="result-header">
+          <div class="vehicle-icon" id="r-icon">🚗</div>
+          <div>
+            <div class="result-title" id="r-title">—</div>
+            <div class="result-subtitle" id="r-subtitle">—</div>
+          </div>
+        </div>
+        <div class="result-grid" id="r-grid"></div>
+        <div class="matricula-box">
+          <div class="ml-label">Valor de Matrícula</div>
+          <div class="ml-value" id="r-monto">$0.00</div>
+          <div class="ml-formula" id="r-formula"></div>
+        </div>
+
+        <!-- Tabs código -->
+        <div style="margin-top:1.25rem">
+          <div class="tabs">
+            <button class="tab active" onclick="showTab('tab-patron')">Patrón ejecutado</button>
+            <button class="tab" onclick="showTab('tab-impl')">Implementación JS</button>
+          </div>
+          <div id="tab-patron" class="tab-content">
+            <div class="code-block" id="r-code"></div>
+          </div>
+          <div id="tab-impl" class="tab-content" style="display:none">
+            <div class="code-block" id="impl-code"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Historial -->
+  <div class="history-panel" id="history-panel" style="display:none">
+    <div class="section-title" style="margin-bottom:1rem">Historial de Matrículas</div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════ JavaScript ═══════════════════════ -->
+<script>
+// ─── Factory Method Pattern Implementation ───────────────────
+
+/* ── PRODUCT hierarchy ── */
+class Vehiculo {
+  constructor(placa, marca, modelo, anioFabricacion, avaluo) {
+    if (new.target === Vehiculo) throw new Error('Clase abstracta');
+    this.placa = placa;
+    this.marca = marca;
+    this.modelo = modelo;
+    this.anioFabricacion = anioFabricacion;
+    this.avaluo = avaluo;
+  }
+  calcularMatricula() { throw new Error('Método abstracto'); }
+}
+
+class Auto extends Vehiculo {
+  calcularMatricula() {
+    // 1 % del avalúo comercial
+    return this.avaluo * 0.01;
+  }
+  get formula() { return `avaluo × 1% = ${fmt(this.avaluo)} × 0.01`; }
+}
+
+class Camioneta extends Vehiculo {
+  constructor(placa, marca, modelo, anioFabricacion, avaluo, capacidad, uso) {
+    super(placa, marca, modelo, anioFabricacion, avaluo);
+    this.capacidad = capacidad;
+    this.uso = uso;
+  }
+  calcularMatricula() {
+    const tasa = this.uso === 'comercial' ? 0.02 : 0.015;
+    return this.avaluo * tasa + this.capacidad * 12;
+  }
+  get formula() {
+    const tasa = this.uso === 'comercial' ? '2%' : '1.5%';
+    return `avaluo × ${tasa} + capacidad × $12`;
+  }
+}
+
+class Camion extends Vehiculo {
+  constructor(placa, marca, modelo, anioFabricacion, avaluo, tonelaje, capacidadCarga) {
+    super(placa, marca, modelo, anioFabricacion, avaluo);
+    this.tonelaje = tonelaje;
+    this.capacidadCarga = capacidadCarga;
+  }
+  calcularMatricula() {
+    return this.avaluo * 0.005 + this.tonelaje * 50 + this.capacidadCarga * 8;
+  }
+  get formula() { return `avaluo × 0.5% + tonelaje × $50 + carga × $8`; }
+}
+
+/* ── CREATOR hierarchy ── */
+class CreadorVehiculo {
+  constructor() { if (new.target === CreadorVehiculo) throw new Error('Clase abstracta'); }
+  crearVehiculo(_datos) { throw new Error('Método abstracto'); }
+  procesarMatricula(datos) {
+    const vehiculo = this.crearVehiculo(datos); // ← el Factory Method
+    return vehiculo.calcularMatricula();
+  }
+}
+
+class CreadorAuto extends CreadorVehiculo {
+  crearVehiculo(d) {
+    return new Auto(d.placa, d.marca, d.modelo, d.anioFabricacion, d.avaluo);
+  }
+}
+
+class CreadorCamioneta extends CreadorVehiculo {
+  crearVehiculo(d) {
+    return new Camioneta(d.placa, d.marca, d.modelo, d.anioFabricacion, d.avaluo, d.capacidad, d.uso);
+  }
+}
+
+class CreadorCamion extends CreadorVehiculo {
+  crearVehiculo(d) {
+    return new Camion(d.placa, d.marca, d.modelo, d.anioFabricacion, d.avaluo, d.tonelaje, d.capacidadCarga);
+  }
+}
+
+// ─── UI State ────────────────────────────────────────────────
+
+let currentType = 'auto';
+const history = [];
+
+const icons = { auto: '🚗', camioneta: '🚙', camion: '🚛' };
+const colors = { auto: 'var(--blue)', camioneta: 'var(--purple)', camion: 'var(--amber)' };
+
+function fmt(n) { return '$' + Number(n).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function selectType(type) {
+  currentType = type;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+  document.getElementById('extra-camioneta').classList.toggle('visible', type === 'camioneta');
+  document.getElementById('extra-camion').classList.toggle('visible', type === 'camion');
+  const btn = document.getElementById('submit-btn');
+  btn.className = `submit-btn ${type}`;
+}
+
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  event.target.classList.add('active');
+}
+
+// ─── Diagram highlight ───────────────────────────────────────
+
+const classMap = {
+  vehiculo:          'cls-vehiculo',
+  auto:              'cls-auto',
+  camioneta:         'cls-camioneta',
+  camion:            'cls-camion',
+  creador:           'cls-creador',
+  'creador-auto':    'cls-creador-auto',
+  'creador-camioneta':'cls-creador-camioneta',
+  'creador-camion':  'cls-creador-camion',
+};
+
+function highlightClass(keys) {
+  Object.values(classMap).forEach(id => document.getElementById(id).classList.remove('highlight'));
+  keys.forEach(k => { const el = document.getElementById(classMap[k]); if (el) el.classList.add('highlight'); });
+}
+
+// ─── Main logic ──────────────────────────────────────────────
+
+async function procesarMatricula() {
+  const placa = document.getElementById('f-placa').value.trim();
+  const marca = document.getElementById('f-marca').value.trim();
+  const modelo = document.getElementById('f-modelo').value.trim();
+  const anio = parseInt(document.getElementById('f-anio').value);
+  const avaluo = parseFloat(document.getElementById('f-avaluo').value);
+
+  if (!placa || !marca || !modelo || !anio || !avaluo || avaluo <= 0) {
+    shakeForm(); return;
+  }
+
+  const datos = { placa, marca, modelo, anioFabricacion: anio, avaluo };
+
+  if (currentType === 'camioneta') {
+    datos.capacidad = parseFloat(document.getElementById('f-capacidad').value) || 1;
+    datos.uso = document.getElementById('f-uso').value;
+  }
+  if (currentType === 'camion') {
+    datos.tonelaje = parseFloat(document.getElementById('f-tonelaje').value) || 5;
+    datos.capacidadCarga = parseFloat(document.getElementById('f-carga').value) || 8;
+  }
+
+  // Seleccionar creador
+  let creator, creatorKey, productKey, vehiculo;
+  if (currentType === 'auto') {
+    creator = new CreadorAuto(); creatorKey = 'creador-auto'; productKey = 'auto';
+  } else if (currentType === 'camioneta') {
+    creator = new CreadorCamioneta(); creatorKey = 'creador-camioneta'; productKey = 'camioneta';
+  } else {
+    creator = new CreadorCamion(); creatorKey = 'creador-camion'; productKey = 'camion';
+  }
+
+  // Show panels
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('steps-panel').style.display = 'block';
+  document.getElementById('result-panel').classList.remove('visible');
+
+  // ── Animate steps ──
+  const steps = buildSteps(currentType, creatorKey, productKey, datos);
+  renderSteps(steps);
+  await animateSteps(steps, creatorKey, productKey);
+
+  // Execute pattern
+  vehiculo = creator.crearVehiculo(datos);
+  const monto = creator.procesarMatricula(datos);
+
+  // ── Render result ──
+  renderResult(vehiculo, monto, currentType, creatorKey);
+
+  // ── History ──
+  history.unshift({ type: currentType, placa, marca, modelo, monto });
+  renderHistory();
+}
+
+function buildSteps(type, creatorKey, productKey, d) {
+  const typeLabel = type === 'auto' ? 'Auto' : type === 'camioneta' ? 'Camioneta' : 'Camión';
+  const creatorLabel = `Creador${typeLabel}`;
+  return [
+    {
+      title: 'Cliente solicita procesarMatricula()',
+      detail: `El cliente invoca el método del creador concreto: ${creatorLabel}`,
+      code: `creador.procesarMatricula(datos)`,
+      highlight: ['creador', creatorKey],
+      color: 'var(--green)',
+    },
+    {
+      title: 'CreadorVehiculo llama al Factory Method',
+      detail: `procesarMatricula() delega la creación al método abstracto crearVehiculo()`,
+      code: `vehiculo = this.crearVehiculo(datos)  // ← Factory Method`,
+      highlight: ['creador', creatorKey],
+      color: 'var(--green)',
+    },
+    {
+      title: `${creatorLabel}.crearVehiculo() instancia el producto`,
+      detail: `La subclase concreta sabe qué tipo de vehículo crear`,
+      code: `return new ${typeLabel}(...)`,
+      highlight: [creatorKey, productKey],
+      color: colors[type],
+    },
+    {
+      title: `Objeto ${typeLabel} creado`,
+      detail: `El producto concreto existe y está listo para operar`,
+      code: `vehiculo instanceof ${typeLabel} // true`,
+      highlight: ['vehiculo', productKey],
+      color: colors[type],
+    },
+    {
+      title: 'Calcular matrícula',
+      detail: `Se invoca calcularMatricula() en el producto concreto`,
+      code: `monto = vehiculo.calcularMatricula()`,
+      highlight: [productKey],
+      color: 'var(--green)',
+    },
+    {
+      title: 'Matrícula procesada ✓',
+      detail: `El resultado regresa al cliente a través del creador`,
+      code: `return monto  // procesarMatricula retorna el valor`,
+      highlight: ['creador', creatorKey, productKey],
+      color: 'var(--green)',
+    },
+  ];
+}
+
+function renderSteps(steps) {
+  const list = document.getElementById('steps-list');
+  list.innerHTML = steps.map((s, i) => `
+    <div class="step" id="step-${i}">
+      <div class="step-num" style="background:${s.color}22;color:${s.color};border:1.5px solid ${s.color}">${i + 1}</div>
+      <div class="step-content">
+        <div class="step-title">${s.title}</div>
+        <div class="step-detail">${s.detail}</div>
+        <span class="step-class">${s.code}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function animateSteps(steps, creatorKey, productKey) {
+  for (let i = 0; i < steps.length; i++) {
+    await sleep(350);
+    document.getElementById(`step-${i}`).classList.add('active');
+    highlightClass(steps[i].highlight);
+    await sleep(500);
+  }
+}
+
+function renderResult(vehiculo, monto, type, creatorKey) {
+  document.getElementById('result-panel').classList.add('visible');
+  document.getElementById('r-icon').textContent = icons[type];
+
+  const typeLabel = type === 'auto' ? 'Auto' : type === 'camioneta' ? 'Camioneta' : 'Camión';
+  document.getElementById('r-title').textContent = `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.anioFabricacion})`;
+  document.getElementById('r-subtitle').textContent = `${typeLabel} • Placa: ${vehiculo.placa}`;
+
+  // Cards
+  const extras = type === 'camioneta'
+    ? `<div class="result-card"><div class="rc-label">Capacidad</div><div class="rc-value">${vehiculo.capacidad} ton</div></div>
+       <div class="result-card"><div class="rc-label">Uso</div><div class="rc-value" style="text-transform:capitalize">${vehiculo.uso}</div></div>`
+    : type === 'camion'
+    ? `<div class="result-card"><div class="rc-label">Tonelaje</div><div class="rc-value">${vehiculo.tonelaje} ton</div></div>
+       <div class="result-card"><div class="rc-label">Cap. Carga</div><div class="rc-value">${vehiculo.capacidadCarga} ton</div></div>`
+    : '';
+
+  document.getElementById('r-grid').innerHTML = `
+    <div class="result-card"><div class="rc-label">Placa</div><div class="rc-value">${vehiculo.placa}</div></div>
+    <div class="result-card"><div class="rc-label">Avalúo</div><div class="rc-value">${fmt(vehiculo.avaluo)}</div></div>
+    ${extras}
+  `;
+
+  document.getElementById('r-monto').textContent = fmt(monto);
+  document.getElementById('r-formula').textContent = vehiculo.formula;
+
+  // Code: patron ejecutado
+  const creatorLabel = type === 'auto' ? 'CreadorAuto' : type === 'camioneta' ? 'CreadorCamioneta' : 'CreadorCamion';
+  document.getElementById('r-code').innerHTML = colorize(
+`// 1. El cliente elige el creador concreto
+const creador = new ${creatorLabel}();
+
+// 2. Llama al método template del padre (CreadorVehiculo)
+//    procesarMatricula() es el método template:
+//    internamente llama al Factory Method crearVehiculo()
+const monto = creador.procesarMatricula(datos);
+
+// Equivale a ejecutar:
+//   vehiculo = creador.crearVehiculo(datos)  ← Factory Method
+//   return vehiculo.calcularMatricula()
+
+// Resultado → ${fmt(monto)}`
+  );
+
+  // Code: implementación
+  document.getElementById('impl-code').innerHTML = colorize(getImplCode(type));
+}
+
+function getImplCode(type) {
+  if (type === 'auto') return `class Vehiculo {
+  calcularMatricula() { throw new Error('abstracto'); }
+}
+
+class Auto extends Vehiculo {
+  calcularMatricula() {
+    return this.avaluo * 0.01; // 1% del avalúo
+  }
+}
+
+class CreadorVehiculo {
+  crearVehiculo(datos) { throw new Error('abstracto'); }
+  procesarMatricula(datos) {
+    const v = this.crearVehiculo(datos); // ← Factory Method
+    return v.calcularMatricula();
+  }
+}
+
+class CreadorAuto extends CreadorVehiculo {
+  crearVehiculo(d) {
+    return new Auto(d.placa, d.marca, d.modelo,
+                    d.anioFabricacion, d.avaluo);
+  }
+}`;
+
+  if (type === 'camioneta') return `class Camioneta extends Vehiculo {
+  calcularMatricula() {
+    const tasa = this.uso === 'comercial' ? 0.02 : 0.015;
+    return this.avaluo * tasa + this.capacidad * 12;
+  }
+}
+
+class CreadorCamioneta extends CreadorVehiculo {
+  crearVehiculo(d) {
+    return new Camioneta(d.placa, d.marca, d.modelo,
+      d.anioFabricacion, d.avaluo,
+      d.capacidad, d.uso); // datos extra
+  }
+}`;
+
+  return `class Camion extends Vehiculo {
+  calcularMatricula() {
+    return this.avaluo * 0.005
+         + this.tonelaje * 50
+         + this.capacidadCarga * 8;
+  }
+}
+
+class CreadorCamion extends CreadorVehiculo {
+  crearVehiculo(d) {
+    return new Camion(d.placa, d.marca, d.modelo,
+      d.anioFabricacion, d.avaluo,
+      d.tonelaje, d.capacidadCarga); // datos extra
+  }
+}`;
+}
+
+function renderHistory() {
+  const panel = document.getElementById('history-panel');
+  const list = document.getElementById('history-list');
+  panel.style.display = 'block';
+  if (history.length === 0) {
+    list.innerHTML = '<div class="empty-history">Sin registros aún</div>';
+    return;
+  }
+  list.innerHTML = history.map(h => `
+    <div class="history-item">
+      <span>${icons[h.type]}</span>
+      <span class="history-badge hb-${h.type}">${h.type}</span>
+      <span class="history-placa">${h.placa}</span>
+      <span style="color:var(--muted)">${h.marca} ${h.modelo}</span>
+      <span class="history-monto">${fmt(h.monto)}</span>
+    </div>
+  `).join('');
+}
+
+// ─── Helpers ─────────────────────────────────────────────────
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function shakeForm() {
+  const btn = document.getElementById('submit-btn');
+  btn.style.transform = 'translateX(-6px)';
+  setTimeout(() => btn.style.transform = 'translateX(6px)', 80);
+  setTimeout(() => btn.style.transform = 'translateX(-4px)', 160);
+  setTimeout(() => btn.style.transform = '', 240);
+}
+
+function colorize(code) {
+  return code
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/(\/\/[^\n]*)/g, '<span class="code-cmt">$1</span>')
+    .replace(/\b(class|extends|new|return|const|this|throw|if|true|false)\b/g, '<span class="code-kw">$1</span>')
+    .replace(/\b(Vehiculo|Auto|Camioneta|Camion|CreadorVehiculo|CreadorAuto|CreadorCamioneta|CreadorCamion|Error)\b/g, '<span class="code-cls">$1</span>')
+    .replace(/\b(calcularMatricula|crearVehiculo|procesarMatricula)\b/g, '<span class="code-fn">$1</span>')
+    .replace(/\b(\d+(\.\d+)?)\b/g, '<span class="code-num">$1</span>')
+    .replace(/'([^']*)'/g, '<span class="code-str">\'$1\'</span>');
+}
+
+// Init
+selectType('auto');
+</script>
+</body>
+</html>
