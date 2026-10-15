@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width; initial-scale=1.0">
+  <title>Escenario 02 - Registro de activos fijos con Builder</title>
+  <style>
+    :root {
+      --azul-900: #123052;
+      --azul-700: #1f4d7a;
+      --azul-100: #eaf2fb;
+      --dorado: #dcae2b;
+      --gris-900: #1f2937;
+      --gris-700: #4b5563;
+      --gris-500: #6b7280;
+      --gris-300: #d1d5db;
+      --gris-100: #f3f4f6;
+      --blanco: #ffffff;
+      --verde: #167a4b;
+      --verde-fondo: #eaf8f1;
+      --rojo: #b42318;
+      --rojo-fondo: #fff1f0;
+      --sombra: 0 14px 35px rgba(18, 48, 82, 0.10);
+      --radio: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--gris-900);
+      background:
+        radial-gradient(circle at top right, rgba(220, 174, 43, 0.14), transparent 24rem),
+        linear-gradient(180deg, #f8fbff 0%, #eef4fa 100%);
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .encabezado {
+      position: relative;
+      overflow: hidden;
+      padding: 34px 24px 30px;
+      color: var(--blanco);
+      background: linear-gradient(115deg, var(--azul-900), var(--azul-700));
+      border-bottom: 5px solid var(--dorado);
+    }
+
+    .encabezado::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -115px;
+      width: 330px;
+      height: 330px;
+      border: 55px solid rgba(255, 255, 255, 0.07);
+      border-radius: 50%;
+    }
+
+    .encabezado-contenido,
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .etiqueta-curso {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 999px;
+      color: #f4d77e;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 860px;
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.08;
+    }
+
+    .subtitulo {
+      max-width: 860px;
+      margin: 14px 0 0;
+      color: #dbe9f6;
+      font-size: 1.06rem;
+    }
+
+    .datos-actividad {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .dato {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+
+    main {
+      padding: 28px 0 48px;
+    }
+
+    .panel {
+      margin-bottom: 22px;
+      padding: 24px;
+      background: var(--blanco);
+      border: 1px solid #dce6f0;
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin-top: 0;
+      color: var(--azul-900);
+    }
+
+    .panel h2 {
+      margin-bottom: 6px;
+      font-size: 1.42rem;
+    }
+
+    .panel-intro {
+      margin: 0 0 18px;
+      color: var(--gris-700);
+    }
+
+    .resumen-patron {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .tarjeta-patron {
+      padding: 16px;
+      background: #f8fbff;
+      border: 1px solid #d7e4f2;
+      border-left: 4px solid var(--dorado);
+      border-radius: 12px;
+    }
+
+    .tarjeta-patron strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--azul-900);
+    }
+
+    .tarjeta-patron p {
+      margin: 0;
+      color: var(--gris-700);
+      font-size: 0.93rem;
+    }
+
+    .integrantes {
+      margin: 18px 0 0;
+      padding-left: 20px;
+      columns: 2;
+      color: var(--gris-700);
+    }
+
+    .integrantes li {
+      margin-bottom: 5px;
+    }
+
+    .acciones-ejemplo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 20px;
+    }
+
+    button {
+      min-height: 42px;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid rgba(31, 77, 122, 0.28);
+      outline-offset: 2px;
+    }
+
+    .boton-principal {
+      color: var(--blanco);
+      background: var(--azul-700);
+      box-shadow: 0 7px 16px rgba(31, 77, 122, 0.22);
+    }
+
+    .boton-principal:hover {
+      background: var(--azul-900);
+    }
+
+    .boton-secundario {
+      color: var(--azul-900);
+      background: var(--azul-100);
+      border: 1px solid #c9dbed;
+    }
+
+    .boton-neutro {
+      color: var(--gris-700);
+      background: var(--gris-100);
+      border: 1px solid var(--gris-300);
+    }
+
+    .formulario-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .campo-doble {
+      grid-column: span 2;
+    }
+
+    .campo-completo {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--azul-900);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .obligatorio {
+      color: var(--rojo);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 12px;
+      color: var(--gris-900);
+      background: #ffffff;
+      border: 1px solid #cbd8e6;
+      border-radius: 9px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .ayuda {
+      color: var(--gris-500);
+      font-size: 0.8rem;
+    }
+
+    .acciones-formulario {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid #e3eaf2;
+    }
+
+    .mensaje {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .mensaje.visible {
+      display: block;
+    }
+
+    .mensaje.exito {
+      color: var(--verde);
+      background: var(--verde-fondo);
+      border: 1px solid #afe1c8;
+    }
+
+    .mensaje.error {
+      color: var(--rojo);
+      background: var(--rojo-fondo);
+      border: 1px solid #f2b8b5;
+    }
+
+    .resultado-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 18px;
+    }
+
+    .resultado-vacio {
+      padding: 34px 20px;
+      color: var(--gris-500);
+      text-align: center;
+      background: #f8fafc;
+      border: 1px dashed #becddd;
+      border-radius: 12px;
+    }
+
+    .ficha-activo {
+      display: none;
+      overflow: hidden;
+      border: 1px solid #d7e3ef;
+      border-radius: 12px;
+    }
+
+    .ficha-activo.visible {
+      display: block;
+    }
+
+    .ficha-cabecera {
+      padding: 18px;
+      color: var(--blanco);
+      background: linear-gradient(120deg, var(--azul-900), var(--azul-700));
+    }
+
+    .ficha-cabecera small {
+      display: block;
+      color: #d8e8f7;
+    }
+
+    .ficha-cabecera h3 {
+      margin: 4px 0 0;
+      color: var(--blanco);
+    }
+
+    .ficha-contenido {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+    }
+
+    .dato-activo {
+      min-height: 72px;
+      padding: 13px 16px;
+      border-right: 1px solid #e3eaf2;
+      border-bottom: 1px solid #e3eaf2;
+    }
+
+    .dato-activo:nth-child(even) {
+      border-right: 0;
+    }
+
+    .dato-activo span {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--gris-500);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .dato-activo strong {
+      color: var(--gris-900);
+      overflow-wrap: anywhere;
+    }
+
+    .bloque-tecnico {
+      overflow: hidden;
+      background: #10243b;
+      border-radius: 12px;
+    }
+
+    .pestanas {
+      display: flex;
+      gap: 0;
+      background: #0b1a2b;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .pestana {
+      min-height: 38px;
+      padding: 9px 13px;
+      color: #c9d8e7;
+      background: transparent;
+      border-radius: 0;
+      font-size: 0.83rem;
+    }
+
+    .pestana.activa {
+      color: #ffffff;
+      background: #173956;
+      box-shadow: inset 0 -3px 0 var(--dorado);
+    }
+
+    pre {
+      min-height: 405px;
+      max-height: 540px;
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      color: #dbe9f6;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 0.84rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .pasos-lista {
+      display: none;
+      min-height: 405px;
+      max-height: 540px;
+      margin: 0;
+      padding: 18px 18px 18px 42px;
+      overflow: auto;
+      color: #dbe9f6;
+    }
+
+    .pasos-lista.visible {
+      display: block;
+    }
+
+    .pasos-lista li {
+      margin-bottom: 10px;
+      padding-left: 5px;
+    }
+
+    .oculto {
+      display: none !important;
+    }
+
+    .metricas {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .metrica {
+      padding: 14px;
+      text-align: center;
+      background: #f7fafc;
+      border: 1px solid #dce6f0;
+      border-radius: 11px;
+    }
+
+    .metrica strong {
+      display: block;
+      color: var(--azul-900);
+      font-size: 1.42rem;
+    }
+
+    .metrica span {
+      color: var(--gris-500);
+      font-size: 0.8rem;
+    }
+
+    .tabla-contenedor {
+      overflow-x: auto;
+      border: 1px solid #dce6f0;
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid #e4ebf2;
+    }
+
+    th {
+      color: var(--azul-900);
+      background: #eef5fc;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .estado-vacio-tabla {
+      color: var(--gris-500);
+      text-align: center;
+    }
+
+    footer {
+      padding: 24px;
+      color: #dce9f6;
+      text-align: center;
+      background: var(--azul-900);
+      border-top: 4px solid var(--dorado);
+    }
+
+    @media (max-width: 900px) {
+      .resumen-patron,
+      .formulario-grid,
+      .resultado-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .campo-doble,
+      .campo-completo {
+        grid-column: auto;
+      }
+
+      .integrantes {
+        columns: 1;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .panel {
+        padding: 18px;
+      }
+
+      .metricas,
+      .ficha-contenido {
+        grid-template-columns: 1fr;
+      }
+
+      .dato-activo,
+      .dato-activo:nth-child(even) {
+        border-right: 0;
+      }
+
+      .acciones-formulario button,
+      .acciones-ejemplo button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="encabezado">
+    <div class="encabezado-contenido">
+      <div class="etiqueta-curso">Patrones de Diseño de Software</div>
+      <h1>Registro de activos fijos con el patrón Builder</h1>
+      <p class="subtitulo">
+        Demostración académica del Escenario 02: construcción progresiva de activos con datos obligatorios y opcionales, sin utilizar constructores extensos ni valores vacíos.
+      </p>
+      <div class="datos-actividad">
+        <span class="dato"><strong>Actividad:</strong> 01</span>
+        <span class="dato"><strong>Grupo:</strong> 4</span>
+        <span class="dato"><strong>Entrega:</strong> 15 de octubre de 2026</span>
+        <span class="dato"><strong>Patrón:</strong> Builder moderno</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="titulo-contexto">
+      <h2 id="titulo-contexto">¿Qué demuestra esta aplicación?</h2>
+      <p class="panel-intro">
+        El cliente crea un <strong>ActivoFijoBuilder</strong> con la información obligatoria; después agrega solamente los datos opcionales que correspondan y finaliza la construcción mediante <strong>build()</strong>.
+      </p>
+
+      <div class="resumen-patron">
+        <article class="tarjeta-patron">
+          <strong>Producto: ActivoFijo</strong>
+          <p>Representa el objeto final correctamente configurado y mantiene sus atributos encapsulados.</p>
+        </article>
+        <article class="tarjeta-patron">
+          <strong>Builder: ActivoFijoBuilder</strong>
+          <p>Construye el activo paso a paso mediante métodos expresivos y encadenables.</p>
+        </article>
+        <article class="tarjeta-patron">
+          <strong>Cliente: RegistroActivosApp</strong>
+          <p>Lee el formulario, utiliza el Builder y presenta el producto construido.</p>
+        </article>
+      </div>
+
+      <h3 style="margin-top: 22px; margin-bottom: 4px;">Integrantes del Grupo 4</h3>
+      <ul class="integrantes">
+        <li>Garcia Garcia Kenny Kevin</li>
+        <li>Jalca Saltos Luigi Alexander</li>
+        <li>Morales Rivera David Andres</li>
+        <li>Narvaez Lopez Jilson Ariel</li>
+      </ul>
+    </section>
+
+    <section class="panel" aria-labelledby="titulo-formulario">
+      <h2 id="titulo-formulario">Construcción progresiva del activo</h2>
+      <p class="panel-intro">
+        Los tres primeros campos son obligatorios. Los demás se incorporan únicamente cuando contienen información.
+      </p>
+
+      <div class="acciones-ejemplo">
+        <button type="button" id="btnEjemploComputador" class="boton-secundario">Cargar ejemplo: computador</button>
+        <button type="button" id="btnEjemploMesa" class="boton-secundario">Cargar ejemplo: mesa</button>
+        <button type="button" id="btnLimpiarFormulario" class="boton-neutro">Limpiar formulario</button>
+      </div>
+
+      <form id="formActivo" novalidate>
+        <div class="formulario-grid">
+          <div class="campo">
+            <label for="codigoInstitucional">Código institucional <span class="obligatorio">*</span></label>
+            <input id="codigoInstitucional" name="codigoInstitucional" type="text" maxlength="30" placeholder="Ej. AF001" autocomplete="off" required>
+          </div>
+
+          <div class="campo campo-doble">
+            <label for="descripcion">Nombre o descripción <span class="obligatorio">*</span></label>
+            <input id="descripcion" name="descripcion" type="text" maxlength="120" placeholder="Ej. Computador portátil" autocomplete="off" required>
+          </div>
+
+          <div class="campo">
+            <label for="precioAdquisicion">Precio de adquisición <span class="obligatorio">*</span></label>
+            <input id="precioAdquisicion" name="precioAdquisicion" type="number" min="0.01" step="0.01" placeholder="1200.00" required>
+          </div>
+
+          <div class="campo">
+            <label for="tipoActivo">Tipo de activo</label>
+            <select id="tipoActivo" name="tipoActivo">
+              <option value="">No especificado</option>
+              <option>Computador</option>
+              <option>Monitor</option>
+              <option>Impresora</option>
+              <option>Mueble</option>
+              <option>Vehículo</option>
+              <option>Otro</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="marca">Marca</label>
+            <input id="marca" name="marca" type="text" maxlength="80" placeholder="Ej. Dell">
+          </div>
+
+          <div class="campo">
+            <label for="modelo">Modelo</label>
+            <input id="modelo" name="modelo" type="text" maxlength="80" placeholder="Ej. Latitude 5440">
+          </div>
+
+          <div class="campo">
+            <label for="numeroSerie">Número de serie</label>
+            <input id="numeroSerie" name="numeroSerie" type="text" maxlength="80" placeholder="Ej. SN-2026-001">
+          </div>
+
+          <div class="campo">
+            <label for="ubicacion">Ubicación</label>
+            <input id="ubicacion" name="ubicacion" type="text" maxlength="100" placeholder="Ej. Oficina administrativa">
+          </div>
+
+          <div class="campo">
+            <label for="custodio">Custodio responsable</label>
+            <input id="custodio" name="custodio" type="text" maxlength="100" placeholder="Ej. María López">
+          </div>
+
+          <div class="campo">
+            <label for="fechaAdquisicion">Fecha de adquisición</label>
+            <input id="fechaAdquisicion" name="fechaAdquisicion" type="date">
+          </div>
+
+          <div class="campo">
+            <label for="garantiaMeses">Período de garantía</label>
+            <input id="garantiaMeses" name="garantiaMeses" type="number" min="0" step="1" placeholder="Meses">
+            <span class="ayuda">Se registra en meses.</span>
+          </div>
+
+          <div class="campo campo-doble">
+            <label for="proveedor">Proveedor</label>
+            <input id="proveedor" name="proveedor" type="text" maxlength="120" placeholder="Ej. Tecnología Institucional S.A.">
+          </div>
+
+          <div class="campo campo-completo">
+            <label for="caracteristicasTecnicas">Características técnicas</label>
+            <textarea id="caracteristicasTecnicas" name="caracteristicasTecnicas" maxlength="500" placeholder="Ej. Intel Core i7; 16 GB RAM; SSD 512 GB"></textarea>
+          </div>
+
+          <div class="campo campo-completo">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" name="observaciones" maxlength="500" placeholder="Información adicional relevante para el activo"></textarea>
+          </div>
+        </div>
+
+        <div class="acciones-formulario">
+          <button type="submit" class="boton-principal">Construir activo con Builder</button>
+          <button type="button" id="btnLimpiarHistorial" class="boton-neutro">Limpiar historial</button>
+        </div>
+
+        <div id="mensaje" class="mensaje" role="alert" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="titulo-resultado">
+      <h2 id="titulo-resultado">Resultado de la construcción</h2>
+      <p class="panel-intro">
+        La ficha corresponde al producto final; el panel técnico evidencia el objeto, la cadena Builder y los pasos ejecutados.
+      </p>
+
+      <div class="resultado-grid">
+        <div>
+          <div id="resultadoVacio" class="resultado-vacio">
+            Todavía no se ha construido ningún activo. Complete el formulario o cargue uno de los ejemplos.
+          </div>
+
+          <article id="fichaActivo" class="ficha-activo" aria-live="polite">
+            <div class="ficha-cabecera">
+              <small id="fichaCodigo">—</small>
+              <h3 id="fichaDescripcion">—</h3>
+            </div>
+            <div id="fichaContenido" class="ficha-contenido"></div>
+          </article>
+        </div>
+
+        <div class="bloque-tecnico">
+          <div class="pestanas" role="tablist" aria-label="Evidencia técnica">
+            <button type="button" class="pestana activa" data-panel="json">Objeto JSON</button>
+            <button type="button" class="pestana" data-panel="codigo">Cadena Builder</button>
+            <button type="button" class="pestana" data-panel="pasos">Pasos</button>
+          </div>
+          <pre id="panelJson">// El objeto construido aparecerá aquí.</pre>
+          <pre id="panelCodigo" class="oculto">// La cadena de construcción aparecerá aquí.</pre>
+          <ol id="panelPasos" class="pasos-lista"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="titulo-historial">
+      <h2 id="titulo-historial">Activos construidos durante la demostración</h2>
+      <p class="panel-intro">
+        Cada registro fue generado mediante una instancia independiente de <strong>ActivoFijoBuilder</strong>.
+      </p>
+
+      <div class="metricas">
+        <div class="metrica">
+          <strong id="metricaCantidad">0</strong>
+          <span>activos construidos</span>
+        </div>
+        <div class="metrica">
+          <strong id="metricaTotal">$0,00</strong>
+          <span>valor acumulado</span>
+        </div>
+        <div class="metrica">
+          <strong id="metricaUltimo">—</strong>
+          <span>último código</span>
+        </div>
+      </div>
+
+      <div class="tabla-contenedor">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descripción</th>
+              <th>Tipo</th>
+              <th>Precio</th>
+              <th>Ubicación</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpoHistorial">
+            <tr>
+              <td colspan="5" class="estado-vacio-tabla">No existen activos construidos.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Grupo 4 · Actividad 01 · Escenario 02 · Patrón creacional Builder
+  </footer>
+
+  <script>
+    "use strict";
+
+    // PRODUCTO: objeto complejo resultante.
+    class ActivoFijo {
+      #codigoInstitucional;
+      #descripcion;
+      #precioAdquisicion;
+      #tipoActivo;
+      #marca;
+      #modelo;
+      #numeroSerie;
+      #ubicacion;
+      #custodio;
+      #fechaAdquisicion;
+      #garantiaMeses;
+      #proveedor;
+      #caracteristicasTecnicas;
+      #observaciones;
+
+      constructor(datos) {
+        this.#codigoInstitucional = datos.codigoInstitucional;
+        this.#descripcion = datos.descripcion;
+        this.#precioAdquisicion = datos.precioAdquisicion;
+        this.#tipoActivo = datos.tipoActivo;
+        this.#marca = datos.marca;
+        this.#modelo = datos.modelo;
+        this.#numeroSerie = datos.numeroSerie;
+        this.#ubicacion = datos.ubicacion;
+        this.#custodio = datos.custodio;
+        this.#fechaAdquisicion = datos.fechaAdquisicion;
+        this.#garantiaMeses = datos.garantiaMeses;
+        this.#proveedor = datos.proveedor;
+        this.#caracteristicasTecnicas = datos.caracteristicasTecnicas;
+        this.#observaciones = datos.observaciones;
+      }
+
+      obtenerResumen() {
+        return `${this.#codigoInstitucional} - ${this.#descripcion}`;
+      }
+
+      toJSON() {
+        return {
+          codigoInstitucional: this.#codigoInstitucional,
+          descripcion: this.#descripcion,
+          precioAdquisicion: this.#precioAdquisicion,
+          tipoActivo: this.#tipoActivo,
+          marca: this.#marca,
+          modelo: this.#modelo,
+          numeroSerie: this.#numeroSerie,
+          ubicacion: this.#ubicacion,
+          custodio: this.#custodio,
+          fechaAdquisicion: this.#fechaAdquisicion,
+          garantiaMeses: this.#garantiaMeses,
+          proveedor: this.#proveedor,
+          caracteristicasTecnicas: this.#caracteristicasTecnicas,
+          observaciones: this.#observaciones
+        };
+      }
+    }
+
+    // CONCRETE BUILDER: configura progresivamente el producto.
+    class ActivoFijoBuilder {
+      #datos;
+      #pasos;
+
+      constructor(codigoInstitucional, descripcion, precioAdquisicion) {
+        this.#datos = {
+          codigoInstitucional: this.#normalizarTexto(codigoInstitucional),
+          descripcion: this.#normalizarTexto(descripcion),
+          precioAdquisicion: Number(precioAdquisicion),
+          tipoActivo: null,
+          marca: null,
+          modelo: null,
+          numeroSerie: null,
+          ubicacion: null,
+          custodio: null,
+          fechaAdquisicion: null,
+          garantiaMeses: null,
+          proveedor: null,
+          caracteristicasTecnicas: null,
+          observaciones: null
+        };
+
+        this.#pasos = [
+          `Datos obligatorios: código = ${this.#datos.codigoInstitucional || "(vacío)"}`,
+          `Datos obligatorios: descripción = ${this.#datos.descripcion || "(vacía)"}`,
+          `Datos obligatorios: precio = ${Number.isFinite(this.#datos.precioAdquisicion) ? this.#datos.precioAdquisicion : "(inválido)"}`
+        ];
+      }
+
+      conTipoActivo(valor) {
+        return this.#asignarTexto("tipoActivo", valor, "Tipo de activo");
+      }
+
+      conMarca(valor) {
+        return this.#asignarTexto("marca", valor, "Marca");
+      }
+
+      conModelo(valor) {
+        return this.#asignarTexto("modelo", valor, "Modelo");
+      }
+
+      conNumeroSerie(valor) {
+        return this.#asignarTexto("numeroSerie", valor, "Número de serie");
+      }
+
+      conUbicacion(valor) {
+        return this.#asignarTexto("ubicacion", valor, "Ubicación");
+      }
+
+      conCustodio(valor) {
+        return this.#asignarTexto("custodio", valor, "Custodio responsable");
+      }
+
+      conFechaAdquisicion(valor) {
+        return this.#asignarTexto("fechaAdquisicion", valor, "Fecha de adquisición");
+      }
+
+      conGarantiaMeses(valor) {
+        const numero = Number(valor);
+        this.#datos.garantiaMeses = numero;
+        this.#pasos.push(`Garantía = ${numero} meses`);
+        return this;
+      }
+
+      conProveedor(valor) {
+        return this.#asignarTexto("proveedor", valor, "Proveedor");
+      }
+
+      conCaracteristicasTecnicas(valor) {
+        return this.#asignarTexto("caracteristicasTecnicas", valor, "Características técnicas");
+      }
+
+      conObservaciones(valor) {
+        return this.#asignarTexto("observaciones", valor, "Observaciones");
+      }
+
+      build() {
+        this.#validarDatosObligatorios();
+        this.#validarGarantia();
+        this.#pasos.push("build(): validación completada y ActivoFijo creado");
+        return new ActivoFijo({ ...this.#datos });
+      }
+
+      obtenerPasosConstruccion() {
+        return [...this.#pasos];
+      }
+
+      #asignarTexto(campo, valor, etiqueta) {
+        const texto = this.#normalizarTexto(valor);
+        this.#datos[campo] = texto || null;
+        this.#pasos.push(`${etiqueta} = ${texto || "(sin valor)"}`);
+        return this;
+      }
+
+      #normalizarTexto(valor) {
+        return String(valor ?? "").trim();
+      }
+
+      #validarDatosObligatorios() {
+        if (!this.#datos.codigoInstitucional) {
+          throw new Error("El código institucional es obligatorio.");
+        }
+
+        if (!this.#datos.descripcion) {
+          throw new Error("El nombre o descripción es obligatorio.");
+        }
+
+        if (!Number.isFinite(this.#datos.precioAdquisicion) || this.#datos.precioAdquisicion <= 0) {
+          throw new Error("El precio de adquisición debe ser mayor que cero.");
+        }
+      }
+
+      #validarGarantia() {
+        const garantia = this.#datos.garantiaMeses;
+        if (garantia === null) {
+          return;
+        }
+
+        if (!Number.isInteger(garantia) || garantia < 0) {
+          throw new Error("La garantía debe expresarse como un número entero de meses mayor o igual que cero.");
+        }
+      }
+    }
+
+    // CLIENTE: utiliza el Builder desde la interfaz HTML.
+    class RegistroActivosApp {
+      constructor() {
+        this.formulario = document.getElementById("formActivo");
+        this.mensaje = document.getElementById("mensaje");
+        this.activos = [];
+        this.ultimoBuilder = null;
+        this.inicializarEventos();
+      }
+
+      inicializarEventos() {
+        this.formulario.addEventListener("submit", (evento) => {
+          evento.preventDefault();
+          this.construirDesdeFormulario();
+        });
+
+        document.getElementById("btnEjemploComputador").addEventListener("click", () => this.cargarEjemploComputador());
+        document.getElementById("btnEjemploMesa").addEventListener("click", () => this.cargarEjemploMesa());
+        document.getElementById("btnLimpiarFormulario").addEventListener("click", () => this.limpiarFormulario());
+        document.getElementById("btnLimpiarHistorial").addEventListener("click", () => this.limpiarHistorial());
+
+        document.querySelectorAll(".pestana").forEach((boton) => {
+          boton.addEventListener("click", () => this.cambiarPanelTecnico(boton.dataset.panel));
+        });
+      }
+
+      construirDesdeFormulario() {
+        this.ocultarMensaje();
+
+        try {
+          const datos = this.leerFormulario();
+          const builder = new ActivoFijoBuilder(
+            datos.codigoInstitucional,
+            datos.descripcion,
+            datos.precioAdquisicion
+          );
+
+          this.aplicarDatoOpcional(builder, "conTipoActivo", datos.tipoActivo);
+          this.aplicarDatoOpcional(builder, "conMarca", datos.marca);
+          this.aplicarDatoOpcional(builder, "conModelo", datos.modelo);
+          this.aplicarDatoOpcional(builder, "conNumeroSerie", datos.numeroSerie);
+          this.aplicarDatoOpcional(builder, "conUbicacion", datos.ubicacion);
+          this.aplicarDatoOpcional(builder, "conCustodio", datos.custodio);
+          this.aplicarDatoOpcional(builder, "conFechaAdquisicion", datos.fechaAdquisicion);
+          this.aplicarDatoOpcional(builder, "conGarantiaMeses", datos.garantiaMeses);
+          this.aplicarDatoOpcional(builder, "conProveedor", datos.proveedor);
+          this.aplicarDatoOpcional(builder, "conCaracteristicasTecnicas", datos.caracteristicasTecnicas);
+          this.aplicarDatoOpcional(builder, "conObservaciones", datos.observaciones);
+
+          const activo = builder.build();
+          this.ultimoBuilder = builder;
+          this.activos.push(activo);
+
+          this.mostrarResultado(activo, builder, datos);
+          this.actualizarHistorial();
+          this.mostrarMensaje(`Activo ${activo.obtenerResumen()} construido correctamente.`, "exito");
+        } catch (error) {
+          this.mostrarMensaje(error.message, "error");
+        }
+      }
+
+      aplicarDatoOpcional(builder, metodo, valor) {
+        const tieneValor = valor !== null && valor !== undefined && String(valor).trim() !== "";
+        if (tieneValor) {
+          builder[metodo](valor);
+        }
+      }
+
+      leerFormulario() {
+        const datosFormulario = new FormData(this.formulario);
+        return Object.fromEntries(datosFormulario.entries());
+      }
+
+      mostrarResultado(activo, builder, datosEntrada) {
+        const datos = activo.toJSON();
+        document.getElementById("resultadoVacio").classList.add("oculto");
+        document.getElementById("fichaActivo").classList.add("visible");
+        document.getElementById("fichaCodigo").textContent = datos.codigoInstitucional;
+        document.getElementById("fichaDescripcion").textContent = datos.descripcion;
+
+        const campos = [
+          ["Precio", this.formatearMoneda(datos.precioAdquisicion)],
+          ["Tipo", datos.tipoActivo],
+          ["Marca", datos.marca],
+          ["Modelo", datos.modelo],
+          ["Número de serie", datos.numeroSerie],
+          ["Ubicación", datos.ubicacion],
+          ["Custodio", datos.custodio],
+          ["Fecha de adquisición", datos.fechaAdquisicion],
+          ["Garantía", datos.garantiaMeses === null ? null : `${datos.garantiaMeses} meses`],
+          ["Proveedor", datos.proveedor],
+          ["Características técnicas", datos.caracteristicasTecnicas],
+          ["Observaciones", datos.observaciones]
+        ].filter(([, valor]) => valor !== null && valor !== undefined && valor !== "");
+
+        document.getElementById("fichaContenido").innerHTML = campos
+          .map(([etiqueta, valor]) => `
+            <div class="dato-activo">
+              <span>${this.escaparHtml(etiqueta)}</span>
+              <strong>${this.escaparHtml(String(valor))}</strong>
+            </div>
+          `)
+          .join("");
+
+        document.getElementById("panelJson").textContent = JSON.stringify(datos, null, 2);
+        document.getElementById("panelCodigo").textContent = this.generarCadenaBuilder(datosEntrada);
+
+        const panelPasos = document.getElementById("panelPasos");
+        panelPasos.innerHTML = builder
+          .obtenerPasosConstruccion()
+          .map((paso) => `<li>${this.escaparHtml(paso)}</li>`)
+          .join("");
+
+        this.cambiarPanelTecnico("json");
+      }
+
+      generarCadenaBuilder(datos) {
+        const formatoCadena = (valor) => JSON.stringify(String(valor));
+        const precio = Number(datos.precioAdquisicion);
+        const lineas = [
+          "const activo = new ActivoFijoBuilder(",
+          `  ${formatoCadena(datos.codigoInstitucional)},`,
+          `  ${formatoCadena(datos.descripcion)},`,
+          `  ${Number.isFinite(precio) ? precio : "precio"}`,
+          ")"
+        ];
+
+        const opcionales = [
+          ["conTipoActivo", datos.tipoActivo, false],
+          ["conMarca", datos.marca, false],
+          ["conModelo", datos.modelo, false],
+          ["conNumeroSerie", datos.numeroSerie, false],
+          ["conUbicacion", datos.ubicacion, false],
+          ["conCustodio", datos.custodio, false],
+          ["conFechaAdquisicion", datos.fechaAdquisicion, false],
+          ["conGarantiaMeses", datos.garantiaMeses, true],
+          ["conProveedor", datos.proveedor, false],
+          ["conCaracteristicasTecnicas", datos.caracteristicasTecnicas, false],
+          ["conObservaciones", datos.observaciones, false]
+        ];
+
+        opcionales.forEach(([metodo, valor, numerico]) => {
+          if (valor !== null && valor !== undefined && String(valor).trim() !== "") {
+            const argumento = numerico ? Number(valor) : formatoCadena(valor);
+            lineas.push(`  .${metodo}(${argumento})`);
+          }
+        });
+
+        lineas.push("  .build();");
+        return lineas.join("\n");
+      }
+
+      cambiarPanelTecnico(panel) {
+        document.querySelectorAll(".pestana").forEach((boton) => {
+          boton.classList.toggle("activa", boton.dataset.panel === panel);
+        });
+
+        document.getElementById("panelJson").classList.toggle("oculto", panel !== "json");
+        document.getElementById("panelCodigo").classList.toggle("oculto", panel !== "codigo");
+        document.getElementById("panelPasos").classList.toggle("visible", panel === "pasos");
+      }
+
+      cargarEjemploComputador() {
+        this.asignarCampos({
+          codigoInstitucional: "AF001",
+          descripcion: "Computador portátil",
+          precioAdquisicion: "1200",
+          tipoActivo: "Computador",
+          marca: "Dell",
+          modelo: "Latitude 5440",
+          numeroSerie: "SN-2026-001",
+          ubicacion: "Oficina administrativa",
+          custodio: "María López",
+          fechaAdquisicion: "2026-10-01",
+          garantiaMeses: "36",
+          proveedor: "Tecnología Institucional S.A.",
+          caracteristicasTecnicas: "Intel Core i7; 16 GB RAM; SSD 512 GB",
+          observaciones: "Incluye cargador y maletín institucional."
+        });
+        this.mostrarMensaje("Ejemplo de computador cargado. Presione “Construir activo con Builder”.", "exito");
+      }
+
+      cargarEjemploMesa() {
+        this.asignarCampos({
+          codigoInstitucional: "AF002",
+          descripcion: "Mesa de reuniones",
+          precioAdquisicion: "480",
+          tipoActivo: "Mueble",
+          marca: "",
+          modelo: "",
+          numeroSerie: "",
+          ubicacion: "Sala de reuniones 2",
+          custodio: "Carlos Andrade",
+          fechaAdquisicion: "2026-09-22",
+          garantiaMeses: "",
+          proveedor: "Muebles Andinos",
+          caracteristicasTecnicas: "Madera laminada; 2,40 m x 1,20 m; capacidad para 10 personas",
+          observaciones: "No requiere número de serie ni garantía registrada."
+        });
+        this.mostrarMensaje("Ejemplo de mesa cargado. Observe que varios atributos opcionales permanecen vacíos.", "exito");
+      }
+
+      asignarCampos(valores) {
+        Object.entries(valores).forEach(([campo, valor]) => {
+          const elemento = document.getElementById(campo);
+          if (elemento) {
+            elemento.value = valor;
+          }
+        });
+      }
+
+      limpiarFormulario() {
+        this.formulario.reset();
+        this.ocultarMensaje();
+        document.getElementById("codigoInstitucional").focus();
+      }
+
+      limpiarHistorial() {
+        this.activos = [];
+        this.ultimoBuilder = null;
+        this.actualizarHistorial();
+        this.mostrarMensaje("El historial de la demostración fue limpiado.", "exito");
+      }
+
+      actualizarHistorial() {
+        const cuerpo = document.getElementById("cuerpoHistorial");
+
+        if (this.activos.length === 0) {
+          cuerpo.innerHTML = `
+            <tr>
+              <td colspan="5" class="estado-vacio-tabla">No existen activos construidos.</td>
+            </tr>
+          `;
+        } else {
+          cuerpo.innerHTML = this.activos
+            .map((activo) => {
+              const datos = activo.toJSON();
+              return `
+                <tr>
+                  <td><strong>${this.escaparHtml(datos.codigoInstitucional)}</strong></td>
+                  <td>${this.escaparHtml(datos.descripcion)}</td>
+                  <td>${this.escaparHtml(datos.tipoActivo || "No especificado")}</td>
+                  <td>${this.escaparHtml(this.formatearMoneda(datos.precioAdquisicion))}</td>
+                  <td>${this.escaparHtml(datos.ubicacion || "No registrada")}</td>
+                </tr>
+              `;
+            })
+            .join("");
+        }
+
+        const total = this.activos.reduce((acumulado, activo) => acumulado + activo.toJSON().precioAdquisicion, 0);
+        const ultimo = this.activos.at(-1)?.toJSON().codigoInstitucional ?? "—";
+
+        document.getElementById("metricaCantidad").textContent = String(this.activos.length);
+        document.getElementById("metricaTotal").textContent = this.formatearMoneda(total);
+        document.getElementById("metricaUltimo").textContent = ultimo;
+      }
+
+      mostrarMensaje(texto, tipo) {
+        this.mensaje.textContent = texto;
+        this.mensaje.className = `mensaje visible ${tipo}`;
+      }
+
+      ocultarMensaje() {
+        this.mensaje.textContent = "";
+        this.mensaje.className = "mensaje";
+      }
+
+      formatearMoneda(valor) {
+        return new Intl.NumberFormat("es-EC", {
+          style: "currency",
+          currency: "USD"
+        }).format(valor);
+      }
+
+      escaparHtml(valor) {
+        return valor
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const app = new RegistroActivosApp();
+      const demo = new URLSearchParams(window.location.search).get("demo");
+
+      if (demo === "computador") {
+        app.cargarEjemploComputador();
+        app.construirDesdeFormulario();
+      } else if (demo === "mesa") {
+        app.cargarEjemploMesa();
+        app.construirDesdeFormulario();
+      }
+    });
+  </script>
+</body>
+</html>

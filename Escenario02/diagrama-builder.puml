@@ -1,0 +1,104 @@
+@startuml
+' Actividad 01 - Escenario 02 - Grupo 4
+' Patrón creacional Builder aplicado al registro de activos fijos
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam classAttributeIconSize 0
+skinparam classFontName Arial
+skinparam classFontSize 13
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam ArrowColor #1F4D7A
+skinparam ClassBorderColor #1F4D7A
+skinparam ClassBackgroundColor #F7FAFD
+skinparam ClassHeaderBackgroundColor #DCEAF7
+skinparam NoteBorderColor #D1A52B
+skinparam NoteBackgroundColor #FFF8DD
+skinparam linetype ortho
+
+title Escenario 02 - Registro de activos fijos con Builder\nGrupo 4
+
+class ActivoFijo <<Producto>> {
+  - codigoInstitucional : String
+  - descripcion : String
+  - precioAdquisicion : Number
+  - tipoActivo : String [0..1]
+  - marca : String [0..1]
+  - modelo : String [0..1]
+  - numeroSerie : String [0..1]
+  - ubicacion : String [0..1]
+  - custodio : String [0..1]
+  - fechaAdquisicion : Date [0..1]
+  - garantiaMeses : Integer [0..1]
+  - proveedor : String [0..1]
+  - caracteristicasTecnicas : String [0..1]
+  - observaciones : String [0..1]
+  --
+  + ActivoFijo(datos : Object)
+  + obtenerResumen() : String
+  + toJSON() : Object
+}
+
+class ActivoFijoBuilder <<ConcreteBuilder>> {
+  - datos : Object
+  - pasos : List<String>
+  --
+  + ActivoFijoBuilder(codigoInstitucional : String, descripcion : String, precioAdquisicion : Number)
+  + conTipoActivo(valor : String) : ActivoFijoBuilder
+  + conMarca(valor : String) : ActivoFijoBuilder
+  + conModelo(valor : String) : ActivoFijoBuilder
+  + conNumeroSerie(valor : String) : ActivoFijoBuilder
+  + conUbicacion(valor : String) : ActivoFijoBuilder
+  + conCustodio(valor : String) : ActivoFijoBuilder
+  + conFechaAdquisicion(valor : Date) : ActivoFijoBuilder
+  + conGarantiaMeses(valor : Integer) : ActivoFijoBuilder
+  + conProveedor(valor : String) : ActivoFijoBuilder
+  + conCaracteristicasTecnicas(valor : String) : ActivoFijoBuilder
+  + conObservaciones(valor : String) : ActivoFijoBuilder
+  + build() : ActivoFijo
+  + obtenerPasosConstruccion() : List<String>
+  --
+  - asignarTexto(campo : String, valor : String, etiqueta : String) : ActivoFijoBuilder
+  - normalizarTexto(valor : Object) : String
+  - validarDatosObligatorios() : void
+  - validarGarantia() : void
+}
+
+class RegistroActivosApp <<Cliente>> {
+  - formulario : HTMLFormElement
+  - activos : List<ActivoFijo>
+  - ultimoBuilder : ActivoFijoBuilder
+  --
+  + inicializarEventos() : void
+  + construirDesdeFormulario() : void
+  + aplicarDatoOpcional(builder : ActivoFijoBuilder, metodo : String, valor : Object) : void
+  + leerFormulario() : Object
+  + mostrarResultado(activo : ActivoFijo, builder : ActivoFijoBuilder, datosEntrada : Object) : void
+  + cargarEjemploComputador() : void
+  + cargarEjemploMesa() : void
+  + limpiarHistorial() : void
+}
+
+RegistroActivosApp ..> ActivoFijoBuilder : utiliza
+ActivoFijoBuilder ..> ActivoFijo : <<crea>>\nmediante build()
+
+note right of ActivoFijoBuilder
+  Variante moderna de Builder:
+  * No utiliza Director.
+  * El cliente configura el objeto
+    mediante métodos encadenados.
+  * build() valida los datos obligatorios
+    y devuelve el Producto.
+end note
+
+note bottom of ActivoFijo
+  Obligatorios:
+  código institucional, descripción
+  y precio de adquisición.
+
+  Los demás atributos son opcionales.
+end note
+
+@enduml
